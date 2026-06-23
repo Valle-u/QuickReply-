@@ -1,0 +1,44 @@
+<Window x:Class="QuickReply.Views.OptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Opciones" Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False"
+        FontFamily="{StaticResource AppFont}" FontSize="13"
+        Background="{StaticResource BrushBg}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Grid Margin="22" TextElement.Foreground="{StaticResource BrushText}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="OPCIONES" Style="{StaticResource SectionTitle}" FontSize="12" />
+        <Border Grid.Row="1" Height="1" Background="{StaticResource BrushBorder}" Margin="0,10,0,14" />
+
+        <CheckBox x:Name="StartupCheck" Grid.Row="2" Content="Iniciar QuickReply con Windows"
+                  VerticalContentAlignment="Center" />
+
+        <TextBlock Grid.Row="3" Text="HOTKEY DE LA PALETA DE BÚSQUEDA" Style="{StaticResource FieldLabel}"
+                   Margin="0,16,0,4" />
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="PaletteHotkeyBox" Grid.Column="0" Height="36" IsReadOnly="True"
+                     FontFamily="Consolas" ToolTip="Hacé clic en «Capturar» y apretá la combinación" />
+            <Button x:Name="CaptureButton" Grid.Column="1" Margin="10,0,0,0" MinWidth="120"
+                    Click="Capture_Click" Content="Capturar" />
+        </Grid>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+            <Button Content="Cancelar" MinWidth="100" Click="Cancel_Click" IsCancel="True" />
+            <Button Content="Guardar" MinWidth="120" Margin="0" Style="{StaticResource PrimaryButton}"
+                    Click="Ok_Click" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</Window>

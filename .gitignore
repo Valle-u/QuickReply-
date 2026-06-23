@@ -1,0 +1,13 @@
+# Compilados / salida de build
+bin/
+obj/
+
+# Datos del usuario en runtime (incluye snippets.json con CBU reales) y backups
+**/snippets.json
+**/backups/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo

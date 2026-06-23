@@ -203,11 +203,14 @@ public sealed class MainForm : Form
         var bottom = new TableLayoutPanel { ColumnCount = 2, Dock = DockStyle.Fill, AutoSize = true, Margin = new Padding(0, 6, 0, 0) };
         bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _saveBtn = Theme.PrimaryButton("Guardar cambios");
-        _saveBtn.AutoSize = true;
-        _saveBtn.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _saveBtn.Padding = new Padding(18, 6, 18, 6);
-        _saveBtn.Anchor = AnchorStyles.Right;
+        _saveBtn = new ChipButton
+        {
+            Text = "Guardar",
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(110, 0),
+            Anchor = AnchorStyles.Right,
+        };
         _saveBtn.Click += (_, _) => Save();
         bottom.Controls.Add(_conflict, 0, 0);
         bottom.Controls.Add(_saveBtn, 1, 0);

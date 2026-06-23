@@ -29,11 +29,8 @@ internal static class RenderTest
         var chk1 = MakeCheck("Enviar con Enter automáticamente", false);
         var chk2 = MakeCheck("Enviar con Enter automáticamente (tildado)", true);
 
-        // Botón Guardar (primario)
-        var save = Theme.PrimaryButton("Guardar cambios");
-        save.AutoSize = true;
-        save.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        save.Padding = new Padding(18, 6, 18, 6);
+        // Botón Guardar (mismo estilo retro que los demás)
+        var save = new ChipButton { Text = "Guardar", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(110, 0) };
 
         form.Controls.AddRange(new Control[] { tb, btn, chk1, chk2, save });
         form.Show();

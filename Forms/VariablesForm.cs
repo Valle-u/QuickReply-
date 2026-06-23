@@ -43,6 +43,9 @@ public sealed class VariablesForm : Form
             y += 56;
         }
 
+        // Fijar el tamaño ANTES de agregar los botones anclados abajo (si no, el anclaje los sube encima de los inputs).
+        ClientSize = new Size(388, y + 48);
+
         var ok = Theme.PrimaryButton("Pegar");
         ok.SetBounds(274, y + 6, 100, 30);
         ok.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
@@ -61,7 +64,6 @@ public sealed class VariablesForm : Form
         Controls.Add(header);
         Controls.Add(ok);
         Controls.Add(cancel);
-        ClientSize = new Size(388, y + 48);
         AcceptButton = ok;
         CancelButton = cancel;
 

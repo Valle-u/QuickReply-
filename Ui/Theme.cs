@@ -31,38 +31,11 @@ internal static class Theme
         DarkTitleBar(f);
     }
 
-    /// <summary>Botón plano oscuro (estilo barra).</summary>
-    public static Button FlatButton(string text)
-    {
-        var b = new Button
-        {
-            Text = text,
-            AutoSize = false,
-            FlatStyle = FlatStyle.Flat,
-            BackColor = Panel,
-            ForeColor = Text,
-            Font = Font,
-            Padding = new Padding(8, 0, 8, 0),
-            Cursor = Cursors.Hand,
-        };
-        b.FlatAppearance.BorderColor = Border;
-        b.FlatAppearance.BorderSize = 1;
-        b.FlatAppearance.MouseOverBackColor = Hover;
-        b.FlatAppearance.MouseDownBackColor = Sel;
-        return b;
-    }
+    /// <summary>Botón plano oscuro retro (dibujado a mano: texto centrado, sin recortes).</summary>
+    public static Button FlatButton(string text) => new ChipButton { Text = text };
 
-    public static Button PrimaryButton(string text)
-    {
-        var b = FlatButton(text);
-        b.BackColor = Color.FromArgb(0xEF, 0xEF, 0xEF);
-        b.ForeColor = Color.FromArgb(0x14, 0x14, 0x14);
-        b.FlatAppearance.BorderColor = Color.FromArgb(0xEF, 0xEF, 0xEF);
-        b.FlatAppearance.MouseOverBackColor = Color.White;
-        b.FlatAppearance.MouseDownBackColor = Color.FromArgb(0xDD, 0xDD, 0xDD);
-        b.Font = FontBold;
-        return b;
-    }
+    /// <summary>Botón de acción primaria. Mismo estilo retro que el resto (uniforme).</summary>
+    public static Button PrimaryButton(string text) => new ChipButton { Text = text };
 
     public static TextBox InputBox(bool multiline = false) => new()
     {

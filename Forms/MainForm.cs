@@ -151,11 +151,13 @@ public sealed class MainForm : Form
         {
             Text = "Enviar con Enter automáticamente",
             ForeColor = Theme.Text,
-            BackColor = Color.Transparent,
+            BackColor = Theme.Bg,
             FlatStyle = FlatStyle.Flat,
             AutoSize = true,
             Margin = new Padding(0, 0, 0, 8),
         };
+        _autoSend.FlatAppearance.BorderColor = Theme.Border;
+        _autoSend.FlatAppearance.CheckedBackColor = Theme.Accent;
 
         var trigRow = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
         trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -200,10 +202,12 @@ public sealed class MainForm : Form
 
         var bottom = new TableLayoutPanel { ColumnCount = 2, Dock = DockStyle.Fill, AutoSize = true, Margin = new Padding(0, 6, 0, 0) };
         bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160));
+        bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         _saveBtn = Theme.PrimaryButton("Guardar cambios");
-        _saveBtn.Dock = DockStyle.Right;
-        _saveBtn.Height = 30;
+        _saveBtn.AutoSize = true;
+        _saveBtn.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _saveBtn.Padding = new Padding(18, 6, 18, 6);
+        _saveBtn.Anchor = AnchorStyles.Right;
         _saveBtn.Click += (_, _) => Save();
         bottom.Controls.Add(_conflict, 0, 0);
         bottom.Controls.Add(_saveBtn, 1, 0);
@@ -239,8 +243,6 @@ public sealed class MainForm : Form
         Controls.Add(split);
         Controls.Add(tb);
         Controls.Add(status);
-
-        KeyDown += OnKeyDownCapture;
 
         RefreshCategories();
         BuildTree("");
@@ -421,33 +423,25 @@ public sealed class MainForm : Form
         if (_current is null) return;
         if (_capturing) { StopCapture(); return; }
         _capturing = true;
-        _tray.BeginKeyCapture();
         _captureBtn.Text = "Apretá tecla…";
+        _tray.BeginKeyCapture(OnKeyCaptured);
     }
 
     private void StopCapture()
     {
+        if (!_capturing) return;
         _capturing = false;
         _tray.EndKeyCapture();
         _captureBtn.Text = "Capturar";
     }
 
-    private void OnKeyDownCapture(object? sender, KeyEventArgs e)
+    // El hook global nos entrega la tecla capturada (en el hilo de UI).
+    private void OnKeyCaptured(Hotkey? hk)
     {
-        if (!_capturing) return;
-        e.Handled = true;
-        e.SuppressKeyPress = true;
-        var kc = e.KeyCode;
-        if (kc is Keys.Escape) { StopCapture(); return; }
-        if (kc is Keys.ControlKey or Keys.Menu or Keys.ShiftKey or Keys.LWin or Keys.RWin) return;
-
-        var mods = ModMask.None;
-        if (e.Control) mods |= ModMask.Control;
-        if (e.Alt) mods |= ModMask.Alt;
-        if (e.Shift) mods |= ModMask.Shift;
-
-        _trigBox.Text = new Hotkey(mods, (int)kc).ToString();
-        StopCapture();
+        _capturing = false;
+        _captureBtn.Text = "Capturar";
+        if (hk is not { } h) return; // Esc: cancelado
+        _trigBox.Text = h.ToString();
         UpdateConflict();
         _status.Text = $"Disparador asignado: {_trigBox.Text} (acordate de Guardar)";
     }

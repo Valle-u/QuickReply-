@@ -5,8 +5,8 @@ using System.Windows.Forms;
 
 namespace QuickReply.Ui;
 
-/// <summary>Modo de diagnóstico: renderiza el botón Capturar junto a inputs y guarda un PNG,
-/// para verificar centrado/altura sin depender de abrir la app. Se invoca con --render-test.</summary>
+/// <summary>Modo de diagnóstico: renderiza controles del editor a un PNG para verificar
+/// look/altura/recortes sin abrir la app. Se invoca con --render-test.</summary>
 internal static class RenderTest
 {
     public static void Run()
@@ -16,24 +16,33 @@ internal static class RenderTest
             StartPosition = FormStartPosition.Manual,
             Location = new Point(-3000, -3000),
             ShowInTaskbar = false,
-            Size = new Size(520, 150),
+            Size = new Size(560, 230),
             BackColor = Theme.Bg,
             FormBorderStyle = FormBorderStyle.None,
         };
 
+        // Botón capturar + input
         var tb = Theme.InputBox(); tb.Font = Theme.Font; tb.Text = "Ctrl+NumPad2";
         var btn = new ChipButton { Text = "Capturar", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(96, 0) };
 
-        var tb2 = Theme.InputBox(); tb2.Font = Theme.Mono; tb2.Text = "NumPad2";
-        var btn2 = new ChipButton { Text = "Apretá tecla…", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(96, 0) };
+        // Checkbox sin tildar y tildado (como en el editor)
+        var chk1 = MakeCheck("Enviar con Enter automáticamente", false);
+        var chk2 = MakeCheck("Enviar con Enter automáticamente (tildado)", true);
 
-        form.Controls.AddRange(new Control[] { tb, btn, tb2, btn2 });
+        // Botón Guardar (primario)
+        var save = Theme.PrimaryButton("Guardar cambios");
+        save.AutoSize = true;
+        save.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        save.Padding = new Padding(18, 6, 18, 6);
+
+        form.Controls.AddRange(new Control[] { tb, btn, chk1, chk2, save });
         form.Show();
 
-        tb.SetBounds(20, 24, 220, tb.Height);
-        btn.Location = new Point(250, 24);
-        tb2.SetBounds(20, 80, 220, tb2.Height);
-        btn2.Location = new Point(250, 80);
+        tb.SetBounds(20, 20, 220, tb.Height);
+        btn.Location = new Point(250, 20);
+        chk1.Location = new Point(20, 70);
+        chk2.Location = new Point(20, 104);
+        save.Location = new Point(20, 150);
         form.Refresh();
         Application.DoEvents();
 
@@ -41,5 +50,21 @@ internal static class RenderTest
         form.DrawToBitmap(bmp, new Rectangle(0, 0, form.Width, form.Height));
         bmp.Save(Path.Combine(AppContext.BaseDirectory, "render-test.png"), ImageFormat.Png);
         form.Close();
+    }
+
+    private static CheckBox MakeCheck(string text, bool chk)
+    {
+        var c = new CheckBox
+        {
+            Text = text,
+            ForeColor = Theme.Text,
+            BackColor = Theme.Bg,
+            FlatStyle = FlatStyle.Flat,
+            AutoSize = true,
+            Checked = chk,
+        };
+        c.FlatAppearance.BorderColor = Theme.Border;
+        c.FlatAppearance.CheckedBackColor = Theme.Accent;
+        return c;
     }
 }

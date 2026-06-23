@@ -115,7 +115,6 @@ public sealed class OptionsForm : Form
         AcceptButton = ok;
         CancelButton = cancel;
 
-        KeyDown += OnKeyDownCapture;
         FormClosed += (_, _) => { if (_capturing) _tray.EndKeyCapture(); };
     }
 
@@ -125,12 +124,13 @@ public sealed class OptionsForm : Form
         _capturing = true;
         _captureTarget = target;
         _captureBtn = btn;
-        _tray.BeginKeyCapture();
         btn.Text = "Apretá una tecla…";
+        _tray.BeginKeyCapture(OnKeyCaptured);
     }
 
     private void StopCapture()
     {
+        if (!_capturing) return;
         _capturing = false;
         _tray.EndKeyCapture();
         if (_captureBtn is not null) _captureBtn.Text = "Capturar";
@@ -138,24 +138,19 @@ public sealed class OptionsForm : Form
         _captureTarget = null;
     }
 
-    private void OnKeyDownCapture(object? sender, KeyEventArgs e)
+    // El hook global nos entrega la tecla capturada (en el hilo de UI).
+    private void OnKeyCaptured(Hotkey? hk)
     {
-        if (!_capturing || _captureTarget is null) return;
-        e.Handled = true;
-        e.SuppressKeyPress = true;
+        var target = _captureTarget;
+        _capturing = false;
+        if (_captureBtn is not null) _captureBtn.Text = "Capturar";
+        _captureBtn = null;
+        _captureTarget = null;
 
-        var kc = e.KeyCode;
-        if (kc is Keys.Escape) { StopCapture(); return; }
-        if (kc is Keys.Delete or Keys.Back) { _captureTarget.Text = ""; StopCapture(); return; }
-        if (kc is Keys.ControlKey or Keys.Menu or Keys.ShiftKey or Keys.LWin or Keys.RWin) return;
-
-        var mods = ModMask.None;
-        if (e.Control) mods |= ModMask.Control;
-        if (e.Alt) mods |= ModMask.Alt;
-        if (e.Shift) mods |= ModMask.Shift;
-
-        _captureTarget.Text = new Hotkey(mods, (int)kc).ToString();
-        StopCapture();
+        if (target is null || hk is not { } h) return; // Esc: cancelado
+        // Supr / Backspace: limpiar (desactivar) la tecla.
+        if (h.Modifiers == ModMask.None && (h.Vk == 0x2E || h.Vk == 0x08)) target.Text = "";
+        else target.Text = h.ToString();
     }
 
     private void Save()

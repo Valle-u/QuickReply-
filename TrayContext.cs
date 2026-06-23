@@ -26,7 +26,7 @@ public sealed class TrayContext : ApplicationContext
     private Hotkey? _paletteHotkey;
     private Hotkey? _sendHotkey;
     private readonly StringBuilder _typed = new();
-    private bool _hookPausedBeforeCapture;
+    private Action<Hotkey?>? _captureCallback;
 
     public TrayContext()
     {
@@ -76,6 +76,16 @@ public sealed class TrayContext : ApplicationContext
 
     private bool OnKeyDown(KeyEventArgsLL args)
     {
+        // Modo captura (asignar una tecla en Configuración/Opciones): tomamos la próxima tecla con el hook.
+        if (_captureCallback is not null)
+        {
+            var cb = _captureCallback;
+            _captureCallback = null;
+            Hotkey? result = args.Vk == 0x1B ? null : new Hotkey(args.Modifiers, args.Vk); // Esc cancela
+            _marshal.BeginInvoke(new Action(() => cb(result)));
+            return true; // tragar la tecla para que no escriba nada
+        }
+
         if (_paletteHotkey is { } ph && ph.Vk == args.Vk && ph.Modifiers == args.Modifiers)
         {
             _typed.Clear();
@@ -213,8 +223,8 @@ public sealed class TrayContext : ApplicationContext
         _tray.Text = _hook.Paused ? "QuickReply (en pausa)" : "QuickReply";
     }
 
-    public void BeginKeyCapture() { _hookPausedBeforeCapture = _hook.Paused; _hook.Paused = true; }
-    public void EndKeyCapture() { _hook.Paused = _hookPausedBeforeCapture; }
+    public void BeginKeyCapture(Action<Hotkey?> onCaptured) => _captureCallback = onCaptured;
+    public void EndKeyCapture() => _captureCallback = null;
 
     private void ExitApp()
     {

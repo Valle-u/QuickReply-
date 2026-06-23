@@ -13,7 +13,13 @@ public sealed class OptionsForm : Form
     private readonly CheckBox _startup;
     private readonly TextBox _hotkey;
     private readonly Button _capture;
+    private readonly TextBox _sendKey;
+    private readonly Button _captureSend;
+    private readonly CheckBox _ctrlEnter;
+
     private bool _capturing;
+    private TextBox? _captureTarget;
+    private Button? _captureBtn;
 
     public OptionsForm(SnippetStore store, TrayContext tray)
     {
@@ -25,7 +31,7 @@ public sealed class OptionsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(440, 170);
+        ClientSize = new Size(470, 296);
         Theme.ApplyWindow(this);
         Icon = BrandIcon.Create();
         KeyPreview = true;
@@ -37,39 +43,73 @@ public sealed class OptionsForm : Form
             BackColor = Color.Transparent,
             FlatStyle = FlatStyle.Flat,
             AutoSize = true,
-            Location = new Point(14, 18),
+            Location = new Point(14, 16),
             Checked = StartupManager.IsEnabled(),
         };
 
-        var lbl = Theme.Label("Hotkey de la paleta de búsqueda:");
-        lbl.Location = new Point(14, 54);
+        var lblPalette = Theme.Label("Hotkey de la paleta de búsqueda:");
+        lblPalette.Location = new Point(14, 48);
 
         _hotkey = Theme.InputBox();
-        _hotkey.SetBounds(14, 80, 290, 26);
+        _hotkey.SetBounds(14, 72, 300, 26);
         _hotkey.ReadOnly = true;
         _hotkey.Font = Theme.Mono;
         _hotkey.Text = store.Settings.PaletteHotkey;
         _hotkey.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
 
         _capture = Theme.FlatButton("Capturar");
-        _capture.SetBounds(312, 79, 114, 28);
+        _capture.SetBounds(322, 71, 120, 28);
         _capture.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-        _capture.Click += (_, _) => ToggleCapture();
+        _capture.Click += (_, _) => ToggleCapture(_hotkey, _capture);
+
+        var lblSend = Theme.Label("Tecla de envío rápido — manda Ctrl+Enter (para Kommo):");
+        lblSend.Location = new Point(14, 110);
+
+        _sendKey = Theme.InputBox();
+        _sendKey.SetBounds(14, 134, 300, 26);
+        _sendKey.ReadOnly = true;
+        _sendKey.Font = Theme.Mono;
+        _sendKey.Text = store.Settings.SendHotkey;
+        _sendKey.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+
+        _captureSend = Theme.FlatButton("Capturar");
+        _captureSend.SetBounds(322, 133, 120, 28);
+        _captureSend.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+        _captureSend.Click += (_, _) => ToggleCapture(_sendKey, _captureSend);
+
+        var hint = Theme.Label("Elegí una tecla libre (ej. F9, Insertar). Supr durante la captura la borra.", muted: true);
+        hint.Location = new Point(14, 164);
+
+        _ctrlEnter = new CheckBox
+        {
+            Text = "Auto-enviar los textos con Ctrl+Enter (en vez de Enter)",
+            ForeColor = Theme.Text,
+            BackColor = Color.Transparent,
+            FlatStyle = FlatStyle.Flat,
+            AutoSize = true,
+            Location = new Point(14, 196),
+            Checked = store.Settings.SendWithCtrlEnter,
+        };
 
         var ok = Theme.PrimaryButton("Guardar");
-        ok.SetBounds(326, 128, 100, 30);
+        ok.SetBounds(342, 252, 100, 30);
         ok.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
         ok.Click += (_, _) => Save();
 
         var cancel = Theme.FlatButton("Cancelar");
-        cancel.SetBounds(218, 128, 100, 30);
+        cancel.SetBounds(234, 252, 100, 30);
         cancel.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
         cancel.DialogResult = DialogResult.Cancel;
 
         Controls.Add(_startup);
-        Controls.Add(lbl);
+        Controls.Add(lblPalette);
         Controls.Add(_hotkey);
         Controls.Add(_capture);
+        Controls.Add(lblSend);
+        Controls.Add(_sendKey);
+        Controls.Add(_captureSend);
+        Controls.Add(hint);
+        Controls.Add(_ctrlEnter);
         Controls.Add(ok);
         Controls.Add(cancel);
         AcceptButton = ok;
@@ -79,29 +119,34 @@ public sealed class OptionsForm : Form
         FormClosed += (_, _) => { if (_capturing) _tray.EndKeyCapture(); };
     }
 
-    private void ToggleCapture()
+    private void ToggleCapture(TextBox target, Button btn)
     {
         if (_capturing) { StopCapture(); return; }
         _capturing = true;
+        _captureTarget = target;
+        _captureBtn = btn;
         _tray.BeginKeyCapture();
-        _capture.Text = "Apretá una tecla…";
+        btn.Text = "Apretá una tecla…";
     }
 
     private void StopCapture()
     {
         _capturing = false;
         _tray.EndKeyCapture();
-        _capture.Text = "Capturar";
+        if (_captureBtn is not null) _captureBtn.Text = "Capturar";
+        _captureBtn = null;
+        _captureTarget = null;
     }
 
     private void OnKeyDownCapture(object? sender, KeyEventArgs e)
     {
-        if (!_capturing) return;
+        if (!_capturing || _captureTarget is null) return;
         e.Handled = true;
         e.SuppressKeyPress = true;
 
         var kc = e.KeyCode;
         if (kc is Keys.Escape) { StopCapture(); return; }
+        if (kc is Keys.Delete or Keys.Back) { _captureTarget.Text = ""; StopCapture(); return; }
         if (kc is Keys.ControlKey or Keys.Menu or Keys.ShiftKey or Keys.LWin or Keys.RWin) return;
 
         var mods = ModMask.None;
@@ -109,7 +154,7 @@ public sealed class OptionsForm : Form
         if (e.Alt) mods |= ModMask.Alt;
         if (e.Shift) mods |= ModMask.Shift;
 
-        _hotkey.Text = new Hotkey(mods, (int)kc).ToString();
+        _captureTarget.Text = new Hotkey(mods, (int)kc).ToString();
         StopCapture();
     }
 
@@ -117,6 +162,8 @@ public sealed class OptionsForm : Form
     {
         try { StartupManager.SetEnabled(_startup.Checked); } catch { }
         _store.Settings.PaletteHotkey = _hotkey.Text.Trim();
+        _store.Settings.SendHotkey = _sendKey.Text.Trim();
+        _store.Settings.SendWithCtrlEnter = _ctrlEnter.Checked;
         try { _store.Save(); } catch { }
         DialogResult = DialogResult.OK;
     }

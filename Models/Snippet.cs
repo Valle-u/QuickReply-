@@ -101,6 +101,12 @@ public sealed class AppSettings
 
     /// <summary>Combinación que abre la ventana de búsqueda (paleta). Ej: "Ctrl+Space".</summary>
     public string PaletteHotkey { get; set; } = "Ctrl+Space";
+
+    /// <summary>Tecla que, al apretarse, manda Ctrl+Enter a la ventana activa (para enviar en Kommo). Vacío = desactivado.</summary>
+    public string SendHotkey { get; set; } = "";
+
+    /// <summary>Si es true, el auto-envío y los mensajes múltiples se mandan con Ctrl+Enter en vez de Enter (para Kommo).</summary>
+    public bool SendWithCtrlEnter { get; set; } = false;
 }
 
 /// <summary>Estructura completa del archivo de configuración (snippets.json).</summary>

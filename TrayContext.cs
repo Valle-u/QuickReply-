@@ -24,6 +24,7 @@ public sealed class TrayContext : ApplicationContext
     private PaletteForm? _palette;
     private IntPtr _paletteTarget;
     private Hotkey? _paletteHotkey;
+    private Hotkey? _sendHotkey;
     private readonly StringBuilder _typed = new();
     private bool _hookPausedBeforeCapture;
 
@@ -43,6 +44,7 @@ public sealed class TrayContext : ApplicationContext
 
         _injector = new TextInjector(() => _store.Settings);
         _paletteHotkey = Hotkey.Parse(_store.Settings.PaletteHotkey);
+        _sendHotkey = Hotkey.Parse(_store.Settings.SendHotkey);
 
         _hook = new KeyboardHook { OnKeyDown = OnKeyDown, TrackCharacters = _store.HasAbbreviations };
         _store.Changed += () => _hook.TrackCharacters = _store.HasAbbreviations;
@@ -84,6 +86,13 @@ public sealed class TrayContext : ApplicationContext
 
         if (_palette is not null)
             return false;
+
+        // Tecla de envío rápido: manda Ctrl+Enter a la ventana activa (ej. para enviar en Kommo).
+        if (_sendHotkey is { } sh && sh.Vk == args.Vk && sh.Modifiers == args.Modifiers)
+        {
+            _injector.EnqueueSendShortcut();
+            return true;
+        }
 
         var snippet = _store.Match(args.Vk, args.Modifiers);
         if (snippet is not null)
@@ -191,7 +200,10 @@ public sealed class TrayContext : ApplicationContext
     {
         using var dlg = new OptionsForm(_store, this);
         if (dlg.ShowDialog(_config) == DialogResult.OK)
+        {
             _paletteHotkey = Hotkey.Parse(_store.Settings.PaletteHotkey);
+            _sendHotkey = Hotkey.Parse(_store.Settings.SendHotkey);
+        }
     }
 
     private void TogglePause()

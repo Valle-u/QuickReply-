@@ -11,7 +11,7 @@ namespace QuickReply.Services;
 /// </summary>
 public sealed class TextInjector : IDisposable
 {
-    private readonly record struct Job(string[] Parts, int Backspaces, bool AutoSend, int CaretLeft);
+    private readonly record struct Job(string[] Parts, int Backspaces, bool AutoSend, int CaretLeft, bool SendShortcut = false);
 
     private readonly BlockingCollection<Job> _queue = new();
     private readonly Thread _thread;
@@ -36,6 +36,10 @@ public sealed class TextInjector : IDisposable
     public void EnqueueMessages(IReadOnlyList<string> parts, int backspaces, bool autoSend, int caretLeft)
         => _queue.Add(new Job(parts.ToArray(), Math.Max(0, backspaces), autoSend, Math.Max(0, caretLeft)));
 
+    /// <summary>Encola un envío "Ctrl+Enter" a la ventana activa (chats que envían con esa combinación, ej. Kommo).</summary>
+    public void EnqueueSendShortcut()
+        => _queue.Add(new Job(Array.Empty<string>(), 0, false, 0, SendShortcut: true));
+
     private void Loop()
     {
         foreach (var job in _queue.GetConsumingEnumerable())
@@ -47,6 +51,14 @@ public sealed class TextInjector : IDisposable
 
     private void Inject(Job job)
     {
+        if (job.SendShortcut)
+        {
+            NeutralizeModifiers();
+            Thread.Sleep(5);
+            SendCtrlEnter();
+            return;
+        }
+
         var parts = job.Parts ?? Array.Empty<string>();
         bool hasText = parts.Any(p => !string.IsNullOrEmpty(p));
 
@@ -86,7 +98,7 @@ public sealed class TextInjector : IDisposable
             {
                 // Enviar este mensaje y esperar a que el chat limpie el campo antes del próximo.
                 Thread.Sleep(Math.Max(60, cfg.EnterDelayMs));
-                SendEnter();
+                if (cfg.SendWithCtrlEnter) SendCtrlEnter(); else SendEnter();
                 Thread.Sleep(150);
             }
             else if (job.CaretLeft > 0)
@@ -97,7 +109,7 @@ public sealed class TextInjector : IDisposable
             else if (job.AutoSend)
             {
                 Thread.Sleep(Math.Max(10, cfg.EnterDelayMs));
-                SendEnter();
+                if (cfg.SendWithCtrlEnter) SendCtrlEnter(); else SendEnter();
             }
         }
 
@@ -152,6 +164,12 @@ public sealed class TextInjector : IDisposable
     private static void SendEnter() => SendInputs(
         (VK_RETURN, false),
         (VK_RETURN, true));
+
+    private static void SendCtrlEnter() => SendInputs(
+        (VK_CONTROL, false),
+        (VK_RETURN, false),
+        (VK_RETURN, true),
+        (VK_CONTROL, true));
 
     private static void SendBackspaces(int count)
     {

@@ -22,6 +22,7 @@ public sealed class TrayContext : ApplicationContext
 
     private MainForm? _config;
     private PaletteForm? _palette;
+    private VariablesForm? _varDialog;
     private IntPtr _paletteTarget;
     private Hotkey? _paletteHotkey;
     private Hotkey? _sendHotkey;
@@ -158,10 +159,20 @@ public sealed class TrayContext : ApplicationContext
 
     private void DispatchWithDialog(Snippet s, int backspaces, IntPtr target)
     {
+        // Si ya hay un formulario abierto, lo traemos al frente en vez de apilar otro.
+        if (_varDialog is { IsDisposed: false })
+        {
+            _varDialog.Activate();
+            return;
+        }
+
         var vars = ExtractVariables(s.Content);
-        using var dlg = new VariablesForm(s.Title, vars);
-        if (dlg.ShowDialog() != DialogResult.OK) return;
-        EnqueueProcessed(s, backspaces, target, dlg.Values);
+        var dlg = new VariablesForm(s.Title, vars);
+        _varDialog = dlg;
+        dlg.FormClosed += (_, _) => { if (ReferenceEquals(_varDialog, dlg)) _varDialog = null; };
+        dlg.Confirmed += values => EnqueueProcessed(s, backspaces, target, values);
+        dlg.Show();      // NO-modal: independiente de cualquier otra ventana
+        dlg.Activate();
     }
 
     private void EnqueueProcessed(Snippet s, int backspaces, IntPtr target, Dictionary<string, string>? values)

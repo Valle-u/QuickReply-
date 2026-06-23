@@ -18,6 +18,12 @@ internal static class Program
             return;
         }
 
+        if (Environment.GetCommandLineArgs().Any(a => a.Equals("--selftest", StringComparison.OrdinalIgnoreCase)))
+        {
+            SelfTest.Run();
+            return;
+        }
+
         using var mutex = new Mutex(true, "QuickReply.SingleInstance", out bool isNew);
         if (!isNew)
         {

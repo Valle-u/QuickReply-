@@ -43,39 +43,48 @@ public sealed class MainForm : Form
         Icon = BrandIcon.Create();
         KeyPreview = true;
 
-        // ---- Toolbar: barra de botones oscuros que se acomoda en otra fila al achicar ----
-        var tb = new FlowLayoutPanel
+        // ---- Toolbar estilo menú clásico (retro) + menú "Más" desplegable ----
+        var tb = new ToolStrip
         {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            WrapContents = true,
+            Renderer = new DarkToolStripRenderer(),
             BackColor = Theme.Panel,
-            Padding = new Padding(6),
+            ForeColor = Theme.Text,
+            GripStyle = ToolStripGripStyle.Hidden,
+            Padding = new Padding(4, 2, 4, 2),
         };
-        void Tool(string text, EventHandler onClick)
+        ToolStripButton Btn(string text, EventHandler onClick)
         {
-            var b = Theme.FlatButton(text);
-            b.AutoSize = true;
-            b.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            b.Padding = new Padding(12, 5, 12, 5);
-            b.Margin = new Padding(2);
+            var b = new ToolStripButton(text) { ForeColor = Theme.Text, DisplayStyle = ToolStripItemDisplayStyle.Text, AutoToolTip = false };
             b.Click += onClick;
-            tb.Controls.Add(b);
+            return b;
         }
-        void Sep() => tb.Controls.Add(new Panel { Width = 1, Height = 24, BackColor = Theme.Border, Margin = new Padding(6, 2, 6, 2) });
+        tb.Items.Add(Btn("Nuevo texto", NewText));
+        tb.Items.Add(Btn("Nueva categoría", NewCategory));
+        tb.Items.Add(Btn("Eliminar categoría", DeleteCategory));
+        tb.Items.Add(new ToolStripSeparator());
+        tb.Items.Add(Btn("Duplicar", Duplicate));
+        tb.Items.Add(Btn("Eliminar", DeleteSnippet));
+        tb.Items.Add(new ToolStripSeparator());
 
-        Tool("Nuevo texto", NewText);
-        Tool("Nueva categoría", NewCategory);
-        Tool("Eliminar categoría", DeleteCategory);
-        Sep();
-        Tool("Duplicar", Duplicate);
-        Tool("Eliminar", DeleteSnippet);
-        Sep();
-        Tool("Importar", Import);
-        Tool("Exportar", Export);
-        Tool("Carpeta", OpenFolder);
-        Tool("Opciones", (_, _) => _tray.ShowOptions());
+        var mas = new ToolStripDropDownButton("Más") { ForeColor = Theme.Text, DisplayStyle = ToolStripItemDisplayStyle.Text, AutoToolTip = false };
+        mas.DropDown.Renderer = new DarkToolStripRenderer();
+        mas.DropDown.BackColor = Theme.Panel;
+        mas.DropDown.ForeColor = Theme.Text;
+        void MasItem(string text, EventHandler onClick)
+        {
+            var it = new ToolStripMenuItem(text) { ForeColor = Theme.Text, BackColor = Theme.Panel };
+            it.Click += onClick;
+            mas.DropDownItems.Add(it);
+        }
+        MasItem("Importar", Import);
+        MasItem("Exportar", Export);
+        MasItem("Carpeta", OpenFolder);
+        MasItem("Opciones", (_, _) => _tray.ShowOptions());
+        tb.Items.Add(mas);
+
+        // por si igual hay overflow al achicar, que su menú también sea oscuro
+        tb.OverflowButton.DropDown.Renderer = new DarkToolStripRenderer();
+        tb.OverflowButton.DropDown.BackColor = Theme.Panel;
 
         // ---- Status ----
         var status = new StatusStrip { Renderer = new DarkToolStripRenderer(), BackColor = Theme.Panel };
@@ -150,12 +159,12 @@ public sealed class MainForm : Form
 
         var trigRow = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
         trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
+        trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
         _trigBox = Field();
         _trigBox.ReadOnly = true;
         _trigBox.Font = Theme.Mono;
         _trigBox.Margin = new Padding(0, 0, 8, 0);
-        _captureBtn = Theme.FlatButton("Capturar tecla");
+        _captureBtn = Theme.FlatButton("Capturar");
         _captureBtn.Dock = DockStyle.Fill;
         _captureBtn.Margin = new Padding(0);
         _captureBtn.Click += (_, _) => ToggleCapture();
@@ -408,14 +417,14 @@ public sealed class MainForm : Form
         if (_capturing) { StopCapture(); return; }
         _capturing = true;
         _tray.BeginKeyCapture();
-        _captureBtn.Text = "Apretá una tecla…";
+        _captureBtn.Text = "Apretá tecla…";
     }
 
     private void StopCapture()
     {
         _capturing = false;
         _tray.EndKeyCapture();
-        _captureBtn.Text = "Capturar tecla";
+        _captureBtn.Text = "Capturar";
     }
 
     private void OnKeyDownCapture(object? sender, KeyEventArgs e)

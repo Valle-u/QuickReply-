@@ -159,13 +159,16 @@ public sealed class MainForm : Form
 
         var trigRow = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
         trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
+        trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         _trigBox = Field();
         _trigBox.ReadOnly = true;
         _trigBox.Font = Theme.Mono;
         _trigBox.Margin = new Padding(0, 0, 8, 0);
         _captureBtn = Theme.FlatButton("Capturar");
-        _captureBtn.Dock = DockStyle.Fill;
+        _captureBtn.AutoSize = true;
+        _captureBtn.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _captureBtn.Padding = new Padding(16, 4, 16, 4);
+        _captureBtn.MinimumSize = new Size(96, 0);
         _captureBtn.Margin = new Padding(0);
         _captureBtn.Click += (_, _) => ToggleCapture();
         trigRow.Controls.Add(_trigBox, 0, 0);

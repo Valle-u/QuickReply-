@@ -80,6 +80,22 @@ internal static class Theme
         BackColor = Color.Transparent,
     };
 
+    /// <summary>Checkbox oscuro con tilde visible (se pone verde al marcar) sobre fondo oscuro.</summary>
+    public static CheckBox DarkCheckBox(string text)
+    {
+        var c = new CheckBox
+        {
+            Text = text,
+            ForeColor = Text,
+            BackColor = Bg,
+            FlatStyle = FlatStyle.Flat,
+            AutoSize = true,
+        };
+        c.FlatAppearance.BorderColor = Border;
+        c.FlatAppearance.CheckedBackColor = Accent;
+        return c;
+    }
+
     // ---- Modo oscuro nativo (Win10 1809+/Win11) ----
 
     public static void DarkTitleBar(Form f)

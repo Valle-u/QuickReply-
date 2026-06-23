@@ -36,16 +36,9 @@ public sealed class OptionsForm : Form
         Icon = BrandIcon.Create();
         KeyPreview = true;
 
-        _startup = new CheckBox
-        {
-            Text = "Iniciar QuickReply con Windows",
-            ForeColor = Theme.Text,
-            BackColor = Color.Transparent,
-            FlatStyle = FlatStyle.Flat,
-            AutoSize = true,
-            Location = new Point(14, 16),
-            Checked = StartupManager.IsEnabled(),
-        };
+        _startup = Theme.DarkCheckBox("Iniciar QuickReply con Windows");
+        _startup.Location = new Point(14, 16);
+        _startup.Checked = StartupManager.IsEnabled();
 
         var lblPalette = Theme.Label("Hotkey de la paleta de búsqueda:");
         lblPalette.Location = new Point(14, 48);
@@ -80,16 +73,9 @@ public sealed class OptionsForm : Form
         var hint = Theme.Label("Elegí una tecla libre (ej. F9, Insertar). Supr durante la captura la borra.", muted: true);
         hint.Location = new Point(14, 164);
 
-        _ctrlEnter = new CheckBox
-        {
-            Text = "Auto-enviar los textos con Ctrl+Enter (en vez de Enter)",
-            ForeColor = Theme.Text,
-            BackColor = Color.Transparent,
-            FlatStyle = FlatStyle.Flat,
-            AutoSize = true,
-            Location = new Point(14, 196),
-            Checked = store.Settings.SendWithCtrlEnter,
-        };
+        _ctrlEnter = Theme.DarkCheckBox("Auto-enviar los textos con Ctrl+Enter (en vez de Enter)");
+        _ctrlEnter.Location = new Point(14, 196);
+        _ctrlEnter.Checked = store.Settings.SendWithCtrlEnter;
 
         var ok = Theme.PrimaryButton("Guardar");
         ok.SetBounds(342, 252, 100, 30);

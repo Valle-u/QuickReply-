@@ -147,17 +147,8 @@ public sealed class MainForm : Form
         _catCombo = Theme.ComboDark();
         _catCombo.Dock = DockStyle.Fill;
         _catCombo.Margin = new Padding(0, 0, 0, 8);
-        _autoSend = new CheckBox
-        {
-            Text = "Enviar con Enter automáticamente",
-            ForeColor = Theme.Text,
-            BackColor = Theme.Bg,
-            FlatStyle = FlatStyle.Flat,
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 8),
-        };
-        _autoSend.FlatAppearance.BorderColor = Theme.Border;
-        _autoSend.FlatAppearance.CheckedBackColor = Theme.Accent;
+        _autoSend = Theme.DarkCheckBox("Enviar con Enter automáticamente");
+        _autoSend.Margin = new Padding(0, 0, 0, 8);
 
         var trigRow = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
         trigRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

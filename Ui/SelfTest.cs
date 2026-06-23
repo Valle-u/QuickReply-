@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using QuickReply.Forms;
+using QuickReply.Services;
 
 namespace QuickReply.Ui;
 
@@ -48,6 +49,16 @@ internal static class SelfTest
         dlg2.SimulateKey(Keys.Return);
         Application.DoEvents();
         Check("Confirma con Enter / Ctrl+Enter (Return)", confirmed2);
+
+        // --- Inicio con Windows: escribe y borra el registro (restaura el estado original) ---
+        bool original = StartupManager.IsEnabled();
+        StartupManager.SetEnabled(true);
+        bool turnedOn = StartupManager.IsEnabled();
+        StartupManager.SetEnabled(false);
+        bool turnedOff = !StartupManager.IsEnabled();
+        StartupManager.SetEnabled(original); // dejar como estaba
+        Check("Inicio con Windows: activar funciona", turnedOn);
+        Check("Inicio con Windows: desactivar funciona", turnedOff);
 
         sb.Insert(0, fail == 0 ? "RESULTADO: TODO OK\n\n" : $"RESULTADO: {fail} FALLO(S)\n\n");
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "selftest.txt"), sb.ToString());

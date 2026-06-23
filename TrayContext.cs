@@ -52,10 +52,20 @@ public sealed class TrayContext : ApplicationContext
         _hook.Install();
 
         _pauseItem = new ToolStripMenuItem("Pausar", null, (_, _) => TogglePause());
+
+        var startupItem = new ToolStripMenuItem("Iniciar con Windows") { Checked = StartupManager.IsEnabled() };
+        startupItem.Click += (_, _) =>
+        {
+            try { StartupManager.SetEnabled(!StartupManager.IsEnabled()); } catch { }
+            startupItem.Checked = StartupManager.IsEnabled();
+        };
+
         var menu = new ContextMenuStrip { Renderer = new DarkToolStripRenderer(), ForeColor = Theme.Text };
         menu.BackColor = Theme.Panel;
+        menu.Opening += (_, _) => startupItem.Checked = StartupManager.IsEnabled(); // mantener sincronizado
         menu.Items.Add(new ToolStripMenuItem("Configurar textos…", null, (_, _) => ShowConfig()));
         menu.Items.Add(new ToolStripMenuItem("Opciones…", null, (_, _) => ShowOptions()));
+        menu.Items.Add(startupItem);
         menu.Items.Add(_pauseItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(new ToolStripMenuItem("Salir", null, (_, _) => ExitApp()));

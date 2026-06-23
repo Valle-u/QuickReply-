@@ -97,7 +97,13 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             BackColor = Theme.Border,
         };
-        Load += (_, _) => { try { if (split.Width > 360) split.SplitterDistance = 300; } catch { } };
+        Load += (_, _) =>
+        {
+            try { if (split.Width > 360) split.SplitterDistance = 300; } catch { }
+            int h = _trigBox.Height;            // alto real del input (correcto en cualquier DPI)
+            _captureBtn.MinimumSize = new Size(96, h);
+            _captureBtn.MaximumSize = new Size(0, h);
+        };
         split.Panel1.BackColor = Theme.TreeBg;
         split.Panel2.BackColor = Theme.Bg;
 
@@ -167,7 +173,7 @@ public sealed class MainForm : Form
         _captureBtn = Theme.FlatButton("Capturar");
         _captureBtn.AutoSize = true;
         _captureBtn.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _captureBtn.Padding = new Padding(16, 4, 16, 4);
+        _captureBtn.Padding = new Padding(16, 0, 16, 0);
         _captureBtn.MinimumSize = new Size(96, 0);
         _captureBtn.Margin = new Padding(0);
         _captureBtn.Click += (_, _) => ToggleCapture();

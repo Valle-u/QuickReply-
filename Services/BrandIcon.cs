@@ -1,35 +1,13 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 
 namespace QuickReply.Services;
 
-/// <summary>Genera el logo de QuickReply por código (sin archivos .ico): cuadrado verde con "Q".</summary>
+/// <summary>Genera el logo de QuickReply por código: cuadrado verde con "Q".</summary>
 public static class BrandIcon
 {
-    public static Icon CreateTrayIcon()
-    {
-        using var bmp = CreateLogo(64);
-        return Icon.FromHandle(bmp.GetHicon());
-    }
-
-    public static BitmapSource CreateWindowImage()
-    {
-        using var bmp = CreateLogo(64);
-        var h = bmp.GetHbitmap();
-        try
-        {
-            return Imaging.CreateBitmapSourceFromHBitmap(
-                h, IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-        }
-        finally
-        {
-            DeleteObject(h);
-        }
-    }
+    public static Icon Create() => Icon.FromHandle(CreateLogo(64).GetHicon());
 
     private static Bitmap CreateLogo(int size)
     {
@@ -66,7 +44,4 @@ public static class BrandIcon
         p.CloseFigure();
         return p;
     }
-
-    [DllImport("gdi32.dll")]
-    private static extern bool DeleteObject(IntPtr hObject);
 }

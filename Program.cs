@@ -12,6 +12,12 @@ internal static class Program
         // Renderer oscuro GLOBAL: cubre también los menús desplegables y el overflow de la toolbar.
         ToolStripManager.Renderer = new DarkToolStripRenderer();
 
+        if (Environment.GetCommandLineArgs().Any(a => a.Equals("--render-test", StringComparison.OrdinalIgnoreCase)))
+        {
+            RenderTest.Run();
+            return;
+        }
+
         using var mutex = new Mutex(true, "QuickReply.SingleInstance", out bool isNew);
         if (!isNew)
         {

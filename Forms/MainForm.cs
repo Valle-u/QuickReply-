@@ -97,13 +97,7 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             BackColor = Theme.Border,
         };
-        Load += (_, _) =>
-        {
-            try { if (split.Width > 360) split.SplitterDistance = 300; } catch { }
-            int h = _trigBox.Height;            // alto real del input (correcto en cualquier DPI)
-            _captureBtn.MinimumSize = new Size(96, h);
-            _captureBtn.MaximumSize = new Size(0, h);
-        };
+        Load += (_, _) => { try { if (split.Width > 360) split.SplitterDistance = 300; } catch { } };
         split.Panel1.BackColor = Theme.TreeBg;
         split.Panel2.BackColor = Theme.Bg;
 
@@ -170,12 +164,14 @@ public sealed class MainForm : Form
         _trigBox.ReadOnly = true;
         _trigBox.Font = Theme.Mono;
         _trigBox.Margin = new Padding(0, 0, 8, 0);
-        _captureBtn = Theme.FlatButton("Capturar");
-        _captureBtn.AutoSize = true;
-        _captureBtn.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _captureBtn.Padding = new Padding(16, 0, 16, 0);
-        _captureBtn.MinimumSize = new Size(96, 0);
-        _captureBtn.Margin = new Padding(0);
+        _captureBtn = new ChipButton
+        {
+            Text = "Capturar",
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(96, 0),
+            Margin = new Padding(0),
+        };
         _captureBtn.Click += (_, _) => ToggleCapture();
         trigRow.Controls.Add(_trigBox, 0, 0);
         trigRow.Controls.Add(_captureBtn, 1, 0);

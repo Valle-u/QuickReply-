@@ -45,8 +45,7 @@ public sealed class VariablesForm : Form
             var lbl = Theme.Label(v.ToUpperInvariant(), muted: true);
             lbl.Location = new Point(14, y);
             var box = Theme.InputBox();
-            box.SetBounds(14, y + 20, 360, 26);
-            box.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+            box.SetBounds(14, y + 20, 360, 26); // ancho fijo, márgenes parejos (diálogo de tamaño fijo)
             Theme.DarkControl(box);
             _boxes[v] = box;
             _first ??= box;
@@ -71,12 +70,21 @@ public sealed class VariablesForm : Form
         Controls.Add(header);
         Controls.Add(ok);
         Controls.Add(cancel);
-        AcceptButton = ok;     // Enter = Pegar
         CancelButton = cancel; // Esc = Cancelar
+
+        // Confirmar con Enter Y con Ctrl+Enter (cómodo viniendo de Kommo). KeyPreview ya está activo.
+        KeyDown += (_, e) =>
+        {
+            if (e.KeyCode == Keys.Return) { Confirm(); e.Handled = e.SuppressKeyPress = true; }
+        };
     }
+
+    private bool _done;
 
     private void Confirm()
     {
+        if (_done) return; // evitar doble confirmación (doble pegado)
+        _done = true;
         Values.Clear();
         foreach (var kv in _boxes) Values[kv.Key] = kv.Value.Text;
         Confirmed?.Invoke(Values);
@@ -113,6 +121,12 @@ public sealed class VariablesForm : Form
         foreach (var kv in values)
             if (_boxes.TryGetValue(kv.Key, out var b)) b.Text = kv.Value;
         Confirm();
+    }
+
+    /// <summary>Solo para pruebas: simula apretar una tecla (Enter / Ctrl+Enter = Return).</summary>
+    internal void SimulateKey(Keys key)
+    {
+        if (key == Keys.Return) Confirm();
     }
 
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();

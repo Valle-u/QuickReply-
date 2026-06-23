@@ -39,6 +39,16 @@ internal static class SelfTest
             got is not null && got.GetValueOrDefault("nombre") == "Juan" && got.GetValueOrDefault("contraseña") == "abc123");
         Check("Se cerró tras confirmar", dlg.IsDisposed);
 
+        // --- Confirmar con la tecla Return (cubre Enter y Ctrl+Enter) ---
+        var dlg2 = new VariablesForm("Test", new[] { "x" });
+        bool confirmed2 = false;
+        dlg2.Confirmed += _ => confirmed2 = true;
+        dlg2.Show();
+        Application.DoEvents();
+        dlg2.SimulateKey(Keys.Return);
+        Application.DoEvents();
+        Check("Confirma con Enter / Ctrl+Enter (Return)", confirmed2);
+
         sb.Insert(0, fail == 0 ? "RESULTADO: TODO OK\n\n" : $"RESULTADO: {fail} FALLO(S)\n\n");
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "selftest.txt"), sb.ToString());
     }

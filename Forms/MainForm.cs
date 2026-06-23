@@ -43,27 +43,39 @@ public sealed class MainForm : Form
         Icon = BrandIcon.Create();
         KeyPreview = true;
 
-        // ---- Toolbar (con overflow nativo) ----
-        var tb = new ToolStrip
+        // ---- Toolbar: barra de botones oscuros que se acomoda en otra fila al achicar ----
+        var tb = new FlowLayoutPanel
         {
-            Renderer = new DarkToolStripRenderer(),
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            WrapContents = true,
             BackColor = Theme.Panel,
-            ForeColor = Theme.Text,
-            GripStyle = ToolStripGripStyle.Hidden,
-            Padding = new Padding(6, 4, 6, 4),
-            ImageScalingSize = new Size(16, 16),
+            Padding = new Padding(6),
         };
-        tb.Items.Add(Tsb("Nuevo texto", NewText));
-        tb.Items.Add(Tsb("Nueva categoría", NewCategory));
-        tb.Items.Add(Tsb("Eliminar categoría", DeleteCategory));
-        tb.Items.Add(new ToolStripSeparator());
-        tb.Items.Add(Tsb("Duplicar", Duplicate));
-        tb.Items.Add(Tsb("Eliminar", DeleteSnippet));
-        tb.Items.Add(new ToolStripSeparator());
-        tb.Items.Add(Tsb("Importar", Import));
-        tb.Items.Add(Tsb("Exportar", Export));
-        tb.Items.Add(Tsb("Carpeta", OpenFolder));
-        tb.Items.Add(Tsb("Opciones", (_, _) => _tray.ShowOptions()));
+        void Tool(string text, EventHandler onClick)
+        {
+            var b = Theme.FlatButton(text);
+            b.AutoSize = true;
+            b.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            b.Padding = new Padding(12, 5, 12, 5);
+            b.Margin = new Padding(2);
+            b.Click += onClick;
+            tb.Controls.Add(b);
+        }
+        void Sep() => tb.Controls.Add(new Panel { Width = 1, Height = 24, BackColor = Theme.Border, Margin = new Padding(6, 2, 6, 2) });
+
+        Tool("Nuevo texto", NewText);
+        Tool("Nueva categoría", NewCategory);
+        Tool("Eliminar categoría", DeleteCategory);
+        Sep();
+        Tool("Duplicar", Duplicate);
+        Tool("Eliminar", DeleteSnippet);
+        Sep();
+        Tool("Importar", Import);
+        Tool("Exportar", Export);
+        Tool("Carpeta", OpenFolder);
+        Tool("Opciones", (_, _) => _tray.ShowOptions());
 
         // ---- Status ----
         var status = new StatusStrip { Renderer = new DarkToolStripRenderer(), BackColor = Theme.Panel };
@@ -223,13 +235,6 @@ public sealed class MainForm : Form
     }
 
     // ---- Helpers de construcción ----
-
-    private static ToolStripButton Tsb(string text, EventHandler onClick)
-    {
-        var b = new ToolStripButton(text) { ForeColor = Theme.Text, DisplayStyle = ToolStripItemDisplayStyle.Text };
-        b.Click += onClick;
-        return b;
-    }
 
     private static TextBox Field()
     {

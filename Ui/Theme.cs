@@ -142,6 +142,25 @@ internal sealed class DarkToolStripRenderer : ToolStripProfessionalRenderer
         base.OnRenderItemText(e);
     }
 
+    protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+    {
+        using var b = new SolidBrush(Theme.Panel);
+        e.Graphics.FillRectangle(b, new Rectangle(Point.Empty, e.ToolStrip.Size));
+    }
+
+    protected override void OnRenderImageMargin(ToolStripRenderEventArgs e)
+    {
+        using var b = new SolidBrush(Theme.Panel);
+        e.Graphics.FillRectangle(b, e.AffectedBounds);
+    }
+
+    protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+    {
+        if (e.ToolStrip is not ToolStripDropDown) return;
+        using var p = new Pen(Theme.Border);
+        e.Graphics.DrawRectangle(p, 0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+    }
+
     private sealed class DarkColors : ProfessionalColorTable
     {
         public override Color ToolStripGradientBegin => Theme.Panel;
